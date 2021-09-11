@@ -44,7 +44,8 @@ def preprocessing(path_file: str) -> list:
 def reading_and_indexing() -> classmethod:
     """
     Чтение всех файлов. Папка с субтатрами должна лежать в папке с кодом.
-    Называться 'friends-data'
+    Называться 'friends-data'.
+    Возвращает Term-Document матрицу.
     """
     corpus = []
     friends_dir = os.path.join(os.getcwd(), 'friends-data-')
