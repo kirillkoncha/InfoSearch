@@ -48,7 +48,7 @@ def reading_and_indexing() -> classmethod:
     Возвращает Term-Document матрицу.
     """
     corpus = []
-    friends_dir = os.path.join(os.getcwd(), 'friends-data-')
+    friends_dir = os.path.join(os.getcwd(), 'friends-data')
     folders = os.listdir(friends_dir)
     for folder in folders:
         curr_dir = os.path.join(friends_dir, folder)
