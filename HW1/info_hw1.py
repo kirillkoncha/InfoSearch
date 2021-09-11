@@ -138,5 +138,3 @@ if __name__ == '__main__':
     print(words_all_documents(bag_of_words))
     print('Количество упоминаний персонажей (видно, что самый частотный -- Росс): ')
     print(popularity(bag_of_words))
-
-    
