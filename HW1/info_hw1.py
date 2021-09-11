@@ -4,12 +4,10 @@ import pymorphy2
 
 from sklearn.feature_extraction.text import CountVectorizer
 from nltk.tokenize import RegexpTokenizer
-
-nltk.download('stopwords')
-nltk.download('wordnet')
-
 from nltk.corpus import stopwords
 
+
+nltk.download('stopwords')
 vectorizer = CountVectorizer(analyzer='word')
 morph = pymorphy2.MorphAnalyzer()
 tokenizer = RegexpTokenizer(r'\w+')
