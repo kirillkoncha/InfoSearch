@@ -1,7 +1,7 @@
 import os
 import nltk
-import pymorphy2
 
+from pymystem3 import Mystem
 from sklearn.feature_extraction.text import CountVectorizer
 from nltk.tokenize import RegexpTokenizer
 from nltk.corpus import stopwords
@@ -9,7 +9,7 @@ from nltk.corpus import stopwords
 
 nltk.download('stopwords')
 vectorizer = CountVectorizer(analyzer='word')
-morph = pymorphy2.MorphAnalyzer()
+m = Mystem()
 tokenizer = RegexpTokenizer(r'\w+')
 stopword = stopwords.words('russian')
 stopword.append('сезон')  # добавим в стоп-слова сезон, серию и автора субтитров
@@ -30,7 +30,8 @@ def preprocessing(path_file: str) -> list:
         lines = [tokenizer.tokenize(line.lower()) for line in lines
                  if line != '']
         for i in range(0, len(lines)):
-            lines[i] = [morph.parse(word)[0].normal_form for word in lines[i]]
+            lines[i] = ' '.join(lines[i])
+            lines[i] = m.lemmatize(lines[i])
             lines[i] = [word for word in lines[i] if word not in stopword
                         and not word.isdigit()]
             lines[i] = ' '.join(lines[i])
