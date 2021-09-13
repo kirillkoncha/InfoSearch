@@ -1,12 +1,14 @@
 import os
 import nltk
 
+
 from pymystem3 import Mystem
 from sklearn.feature_extraction.text import CountVectorizer
 from nltk.tokenize import RegexpTokenizer
 from nltk.corpus import stopwords
 
 
+nltk.download('punkt')
 nltk.download('stopwords')
 vectorizer = CountVectorizer(analyzer='word')
 m = Mystem()
