@@ -85,7 +85,10 @@ def get_cosine_similarity(corpus: list, request: list) -> list:
     return cosine
 
 
-if __name__ == '__main__':
+def main():
+    """
+    Главная функция, которая все объединяет 
+    """
     index = reading_and_indexing()
     bag_of_words = index[0]
     corpus = index[1]
@@ -95,3 +98,8 @@ if __name__ == '__main__':
         answer = sorted(range(len(sim.flatten())), key=lambda k: sim.flatten()[k], reverse=True)
         for item in answer:
             print(corpus[item])
+
+
+if __name__ == '__main__':
+    main()
+
