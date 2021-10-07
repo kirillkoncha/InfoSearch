@@ -75,8 +75,7 @@ def get_corpus_index(texts):
 
 
 def get_cosine_similarity(sparse_matrix, query):
-
-    return cosine_similarity(sparse_matrix, query)
+    return np.dot(sparse_matrix, query.T).toarray()
 
 
 def search_answer(sparse_matrix, query, corpus):
@@ -113,5 +112,7 @@ if __name__ == "__main__":
     while True:
         query = get_search_query()
         answers = search_answer(sparse_matrix, query, corpus)
+        # Топ 10 ответов 
         for i in range(0, 9):
                 print(answers[i])
+
