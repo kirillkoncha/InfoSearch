@@ -115,3 +115,5 @@ if __name__ == "__main__":
         # Топ 10 ответов 
         for i in range(0, 9):
                 print(answers[i])
+
+
