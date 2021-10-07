@@ -1,6 +1,7 @@
 import json
 import numpy as np
 
+
 from scipy import sparse
 from pymystem3 import Mystem
 from nltk.tokenize import RegexpTokenizer
