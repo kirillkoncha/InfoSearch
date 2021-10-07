@@ -6,7 +6,7 @@ from pymystem3 import Mystem
 from nltk.tokenize import RegexpTokenizer
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+
 
 m = Mystem()
 tokenizer = RegexpTokenizer(r'\w+')
