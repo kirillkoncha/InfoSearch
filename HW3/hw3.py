@@ -20,7 +20,7 @@ tfidf_vectorizer = TfidfVectorizer(use_idf=True)
 def get_corpus(filename):
     texts = []
 
-    with open(filename) as json_file:
+    with open(filename, encoding='utf-8') as json_file:
         corpus = list(json_file)[:50000]
     for i in range(0, 50000):
         issue = json.loads(corpus[i])
