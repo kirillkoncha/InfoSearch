@@ -1,0 +1,1 @@
+Модель araneum_none_fasttextcbow_300_5_2018 должна лежать в папке с программой, как и файл questiona_about_love.jsonl. В matrixes -- лежат матрицы, чтобы считывать уже подсчитанные; в vectorizers --  векторайзеры.
