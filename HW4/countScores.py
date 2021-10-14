@@ -34,6 +34,8 @@ def get_scores(matrixesCorpus, matrixesTopics):
             if index in top_results:
                 score += 1
 
+
+
         score = score/len(sorted)
         models_scores[model[6:-4]] = score
 
