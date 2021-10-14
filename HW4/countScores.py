@@ -43,8 +43,7 @@ def get_scores(matrixesCorpus, matrixesTopics):
 
 
 print(get_scores(matrixesCorpus, matrixesTopics))
-{'BM25': 0.0407, 'Bert': 0.0068, 'Count': 0.0309, 'Fasttext': 0.0148, 'TfIdf': 0.0442}
-
+#{'BM25': 0.0407, 'Bert': 0.0068, 'Count': 0.0309, 'Fasttext': 0.0148, 'TfIdf': 0.0442}
 
 
 
