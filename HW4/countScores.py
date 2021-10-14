@@ -43,3 +43,4 @@ def get_scores(matrixesCorpus, matrixesTopics):
 
 
 print(get_scores(matrixesCorpus, matrixesTopics))
+
