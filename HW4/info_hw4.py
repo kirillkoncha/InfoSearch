@@ -11,11 +11,11 @@ from nltk.tokenize import RegexpTokenizer
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from gensim.models import KeyedVectors
-#from transformers import AutoTokenizer, AutoModel
+from transformers import AutoTokenizer, AutoModel
 
 
-#b_tokenizer = AutoTokenizer.from_pretrained("cointegrated/rubert-tiny")
-#b_model = AutoModel.from_pretrained("cointegrated/rubert-tiny")
+b_tokenizer = AutoTokenizer.from_pretrained("cointegrated/rubert-tiny")
+b_model = AutoModel.from_pretrained("cointegrated/rubert-tiny")
 
 
 nltk.download('stopwords')
@@ -212,12 +212,13 @@ if __name__ == "__main__":
     if method == '4':
         sparse_matrix = sparse.load_npz(os.path.join(curr_dir, 'matrixes', 'corpusFasttext.npz'))
         get_query = get_query_fasttext
-    #if method == '5':
-    #   sparse_matrix = sparse.load_npz(os.path.join(curr_dir, 'matrixes', 'corpusBert.npz'))
-    #   get_query = get_query_bert
+    if method == '5':
+       sparse_matrix = sparse.load_npz(os.path.join(curr_dir, 'matrixes', 'corpusBert.npz'))
+       get_query = get_query_bert
     while True:
         query = get_query()
         answers = search_answer(sparse_matrix, query, corpus)
         # Топ 5 ответов
         for i in range(0, 4):
             print(answers[i])
+
