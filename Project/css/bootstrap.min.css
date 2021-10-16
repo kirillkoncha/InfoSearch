@@ -1,10 +1,9 @@
 .nav-tabs{
-  background-color:#161616;
+  background-color:#FADADD;
 }
 .tab-content{
     background-color:#FADADD;
-    color:#fff;
-    padding:5px
+    color:#FADADD
 }
 .nav-tabs > li > a{
   border: medium none;
