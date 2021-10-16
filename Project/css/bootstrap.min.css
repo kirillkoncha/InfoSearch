@@ -3,14 +3,14 @@
 }
 .tab-content{
     background-color:#FADADD;
-    color:#FADADD
+    color:#FADADD;
 }
 .nav-tabs > li > a{
   border: medium none;
 }
 .nav-tabs > li > a:hover{
-  background-color: #303136 !important;
+  background-color: #FADADD !important;
     border: medium none;
     border-radius: 0;
-    color:#fff;
+    color:#FADADD;
 }
