@@ -6,7 +6,7 @@
     color:#FADADD;
 }
 .nav-tabs > li > a{
-  border: medium none;
+  border:none;
 }
 .nav-tabs > li > a:hover{
   background-color: #FADADD !important;
