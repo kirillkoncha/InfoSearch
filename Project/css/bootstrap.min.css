@@ -1,14 +1,3 @@
-.nav-tabs{
-  background-color:#FADADD;
-}
-.tab-content{
-    background-color:#FADADD;
-    color:#FADADD;
-}
-.nav-tabs > li > a{
-  border:none;
-}
-.nav-tabs > li > a:hover{
-  background-color: #FADADD !important;
-    color:#FADADD;
+.nav-tabs>li.active>a, .nav-tabs>li.active>a:focus, .nav-tabs>li.active>a:hover {
+border: 0;
 }
