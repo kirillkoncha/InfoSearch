@@ -10,7 +10,5 @@
 }
 .nav-tabs > li > a:hover{
   background-color: #FADADD !important;
-    border: medium none;
-    border-radius: 0;
     color:#FADADD;
 }
