@@ -9,6 +9,8 @@ import os
 import scipy
 import time
 import torch
+import pymorphy2
+import re
 
 
 from gensim.models import KeyedVectors
@@ -20,35 +22,68 @@ from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from nltk.tokenize import RegexpTokenizer
 
-
-with open("corpus.txt", 'r') as f:
-    corpus = [line.rstrip('\n') for line in f]
-
-corpus = np.array(corpus)
-
-tokenizer = RegexpTokenizer(r'\w+')
-m = Mystem()
-
-
-model_file = '/Users/kirillkonca/Downloads/araneum_none_fasttextcbow_300_5_2018/araneum_none_fasttextcbow_300_5_2018.model'
-model = KeyedVectors.load(model_file)
-
-
-b_tokenizer = AutoTokenizer.from_pretrained('/Users/kirillkonca/PycharmProjects/streamlit/rubert-tiny')
-b_model = AutoModel.from_pretrained('/Users/kirillkonca/PycharmProjects/streamlit/rubert-tiny')
-
-
-top_ten = open('top_ten.pkl', 'rb')
-top_ten = pickle.load(top_ten)
-
-
-low_ten = open('not_top_ten.pkl', 'rb')
-low_ten = pickle.load(low_ten)
-
-
-nltk.download('stopwords')
-stopword = stopwords.words('russian')
 curr_dir = os.getcwd()
+morph = pymorphy2.MorphAnalyzer()
+
+@st.cache()
+def get_matrixes():
+    count_matrix = scipy.sparse.load_npz(os.path.join(curr_dir, 'matrixes', 'topicsCount.npz'))
+    tfidf_matrix = scipy.sparse.load_npz(os.path.join(curr_dir, 'matrixes', 'topicsTfIdf.npz'))
+    BM25_matrix = scipy.sparse.load_npz(os.path.join(curr_dir, 'matrixes', 'topicsBM25.npz'))
+    fasttext_matrix = scipy.sparse.load_npz(os.path.join(curr_dir, 'matrixes', 'topicsFasttext.npz'))
+    bert_matrix = scipy.sparse.load_npz(os.path.join(curr_dir, 'matrixes', 'topicsBert.npz'))
+
+    return count_matrix, tfidf_matrix, BM25_matrix, fasttext_matrix, bert_matrix
+
+
+@st.cache(allow_output_mutation=True)
+def get_vectorizers():
+    count = open(os.path.join(curr_dir, 'vectorizers', 'tf_vectorizer.pickle'), 'rb')
+    count = pickle.load(count)
+    tfidf = open(os.path.join(curr_dir, 'vectorizers', 'tfidf_vectorizer.pickle'), 'rb')
+    tfidf = pickle.load(tfidf)
+    bm25 = open(os.path.join(curr_dir, 'vectorizers', 'tf_vectorizerBM25.pickle'), 'rb')
+    bm25 = pickle.load(bm25)
+
+    return count, tfidf, bm25
+
+
+@st.cache(allow_output_mutation=True)
+def get_other():
+    tokenizer = RegexpTokenizer(r'\w+')
+    m = Mystem()
+    return tokenizer, m
+
+
+@st.cache(allow_output_mutation=True)
+def get_models():
+    model_file = '/Users/kirillkonca/Downloads/araneum_none_fasttextcbow_300_5_2018/araneum_none_fasttextcbow_300_5_2018.model'
+    model = KeyedVectors.load(model_file)
+    b_tokenizer = AutoTokenizer.from_pretrained('/Users/kirillkonca/PycharmProjects/streamlit/rubert-tiny')
+    b_model = AutoModel.from_pretrained('/Users/kirillkonca/PycharmProjects/streamlit/rubert-tiny')
+    return model, b_tokenizer, b_model
+
+
+@st.cache(allow_output_mutation=True)
+def get_data():
+    top_ten = open('top_ten.pkl', 'rb')
+    top_ten = pickle.load(top_ten)
+    low_ten = open('not_top_ten.pkl', 'rb')
+    low_ten = pickle.load(low_ten)
+    nltk.download('stopwords')
+    stopword = stopwords.words('russian')
+    with open("corpus.txt", 'r') as f:
+        corpus = [line.rstrip('\n') for line in f]
+    corpus = np.array(corpus)
+    return top_ten, low_ten, stopword, corpus
+
+
+sparse_matrix = sparse.csr_matrix([])
+top_ten, low_ten, stopword, corpus = get_data()
+model, b_tokenizer, b_model = get_models()
+tokenizer, m = get_other()
+count, tfidf, bm25 = get_vectorizers()
+count_matrix, tfidf_matrix, BM25_matrix, fasttext_matrix, bert_matrix = get_matrixes()
 
 
 def get_query_bert(query, model, tokenizer):
@@ -83,15 +118,15 @@ def get_query_fasttext(query):
     return corpus
 
 
-def get_query_tfidf(query):
+def get_query_tfidf(query, vectorizer):
     return vectorizer.transform(query)
 
 
-def get_query_BM25(query):
+def get_query_BM25(query, vectorizer):
     return vectorizer.transform(query)
 
 
-def get_query_count(query):
+def get_query_count(query, vectorizer):
     return vectorizer.transform(query)
 
 
@@ -107,6 +142,12 @@ def preprocessing(texts):
     return np.array(preprocessed_texts)
 
 
+@st.cache
+def load_matrix(name):
+    sparse_matrix = scipy.sparse.load_npz(os.path.join(curr_dir, 'matrixes', name))
+    return sparse_matrix
+
+
 def normalize_vec(x):
     return x / np.linalg.norm(x)
 
@@ -117,21 +158,28 @@ def get_cosine_similarity(sparse_matrix, query):
 
 def search_answer(sparse_matrix, query, corpus, option):
     if option == 'Count Vectors':
-        query = get_query_count(query)
+        sparse_matrix = count_matrix
+        vectorizer = count
+        query = get_query_count(query, vectorizer)
     if option == 'TfIdf':
-        query = get_query_tfidf(query)
+        sparse_matrix = tfidf_matrix
+        vectorizer = tfidf
+        query = get_query_tfidf(query, vectorizer)
     if option == 'BM25':
-        query = get_query_BM25(query)
+        sparse_matrix = BM25_matrix
+        vectorizer = bm25
+        query = get_query_BM25(query, vectorizer)
     if option == 'Fasttext':
+        sparse_matrix = fasttext_matrix
         query = get_query_fasttext(query)
     if option == 'Bert':
+        sparse_matrix = bert_matrix
         query = get_query_bert(query, b_model, b_tokenizer)
     scores = get_cosine_similarity(sparse_matrix, query)
     sorted_scores_indx = np.argsort(scores, axis=0)[::-1]
     corpus = corpus[sorted_scores_indx.ravel()]
 
-    for i in range(0, 9):
-        st.write(corpus[i])
+    return corpus
 
 
 st.title('Ответы о любви ❤️')
@@ -140,15 +188,23 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-
 query_params = st.experimental_get_query_params()
 tabs = ["Поиск", "Данные"]
 
+len_data = pd.DataFrame(
+    [[134403, 0], [0, 83444]],
+    columns=['До препроца', 'После препроца']
+)
+
+tokens_data = pd.DataFrame(
+    [[13976, 0], [0, 13046]],
+    columns=['До препроца', 'После препроца']
+)
 
 if "tab" in query_params:
     active_tab = query_params["tab"][0]
 else:
-    active_tab = "Данные"
+    active_tab = "Поиск"
 
 if active_tab not in tabs:
     st.experimental_set_query_params(tab="Данные")
@@ -171,56 +227,37 @@ tabs_html = f"""
 st.markdown(tabs_html, unsafe_allow_html=True)
 st.markdown("<br>", unsafe_allow_html=True)
 
-if active_tab == "Данные":
-    link = 'Поиск по [датасету](https://www.dropbox.com/s/6uinrxp7p33ha1u/questions_about_love.jsonl?dl=0) вопросов и ответов о любви с Ответов Mail.Ru.'
-    st.markdown(link, unsafe_allow_html=True)
-    st.write('Поиск осуществляется по первым 10К вопросов.')
-    values = st.slider(
-        'N самых частотных и низкочастотных слов в корпусе (справа абсолютная частотность)',
-        1, 10)
-    st.write('Самые частотные')
-    st.write(dict(itertools.islice(top_ten.items(), values)))
-    st.write('Самые низкочастотные')
-    st.write(dict(itertools.islice(low_ten.items(), values)))
-    st.write('Длина корпуса до и после препроца')
-    len_data = pd.DataFrame(
-        [[134403, 0], [0, 83444]],
-        columns=['До препроца', 'После препроца']
-    )
-    st.bar_chart(len_data)
-    st.write('Уникальные токены до и после препроца')
-    tokens_data = pd.DataFrame(
-        [[13976, 0], [0, 13046]],
-        columns=['До препроца', 'После препроца']
-    )
-    st.bar_chart(tokens_data)
-elif active_tab == "Поиск":
-    search = st.text_input("Введите ваш запрос", "")
-    option = st.selectbox('Выберите способ поиска',
-                          ('Count Vectors', 'TfIdf', 'BM25',
-                           'Fasttext', 'Bert'))
-    if option == 'Count Vectors':
-        sparse_matrix = scipy.sparse.load_npz(os.path.join(curr_dir, 'matrixes', 'corpusCount.npz'))
-        vectorizer = open(os.path.join(curr_dir, 'vectorizers', 'tf_vectorizer.pickle'),'rb')
-        vectorizer = pickle.load(vectorizer)
-    if option == 'TfIdf':
-        sparse_matrix = scipy.sparse.load_npz(os.path.join(curr_dir, 'matrixes', 'corpusTfIdf.npz'))
-        vectorizer = open(os.path.join(curr_dir, 'vectorizers', 'tfidf_vectorizer.pickle'), 'rb')
-        vectorizer = pickle.load(vectorizer)
-    if option == 'BM25':
-        sparse_matrix = scipy.sparse.load_npz(os.path.join(curr_dir, 'matrixes', 'corpusBM25.npz'))
-        vectorizer = open(os.path.join(curr_dir, 'vectorizers', 'tf_vectorizerBM25.pickle'), 'rb')
-        vectorizer = pickle.load(vectorizer)
-    if option == 'Fasttext':
-        sparse_matrix = scipy.sparse.load_npz(os.path.join(curr_dir, 'matrixes', 'corpusFasttext.npz'))
-    if option != 'Bert':
-        search = preprocessing([search])
-    if option == 'Bert':
-        sparse_matrix = scipy.sparse.load_npz(os.path.join(curr_dir, 'matrixes', 'corpusBert.npz'))
-    if st.button('Искать') or search:
-        start = time.time()
-        search_answer(sparse_matrix, search, corpus, option)
-        st.write('Время выполнения поиска: ', time.time() - start)
+if __name__ == "__main__":
+    if active_tab == "Данные":
+        link = 'Поиск по [датасету](https://www.dropbox.com/s/6uinrxp7p33ha1u/questions_about_love.jsonl?dl=0) вопросов и ответов о любви с Ответов Mail.Ru.'
+        st.markdown(link, unsafe_allow_html=True)
+        st.write('Поиск осуществляется по первым 10К вопросов.')
+        values = st.slider(
+            'N самых частотных и низкочастотных слов в корпусе (справа абсолютная частотность)',
+            1, 10)
+        st.write('Самые частотные')
+        st.write(dict(itertools.islice(top_ten.items(), values)))
+        st.write('Самые низкочастотные')
+        st.write(dict(itertools.islice(low_ten.items(), values)))
+        st.write('Длина корпуса до и после препроца')
+        st.bar_chart(len_data)
+        st.write('Уникальные токены до и после препроца')
+        st.bar_chart(tokens_data)
+    elif active_tab == "Поиск":
+        search = st.text_input("Введите ваш запрос", "")
+        option = st.selectbox('Выберите способ поиска',
+                              ('Count Vectors', 'TfIdf', 'BM25',
+                               'Fasttext', 'Bert'))
+        number = st.number_input('Введите число ответов: ', value=10, min_value=1, max_value=20, step=1)
+        if st.button('Искать'):
+            start = time.time()
+            if option != 'Bert':
+                search = preprocessing([search])
+            st.subheader('{} лучших результатов:'.format(number))
+            answers = search_answer(sparse_matrix, search, corpus, option)
+            for i in range(0, number):
+                st.write(answers[i])
+            st.write('Время выполнения поиска: ', time.time() - start)
 
-else:
-    st.error("Что-то пошло не так...")
+    else:
+        st.error("Что-то пошло не так...")
